@@ -1,30 +1,37 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+import { io } from "socket.io-client";
+import { onMounted, ref } from "vue";
+
+const socket = io("http://localhost:3000");
+socket.connect();
+
+const localVideo = ref<HTMLVideoElement | null>(null);
+const remoteVideo = ref<HTMLVideoElement | null>(null);
+
+onMounted(async () => {
+    if (!localVideo.value) return;
+    localVideo.value.srcObject = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
+    });
+});
 </script>
 
 <template>
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
-  </div>
-  <HelloWorld msg="Vite + Vue" />
+    <h1 class="text-center text-5xl mt-10">Simple WebRTC demo</h1>
+    <div class="flex justify-center items-center gap-5 mt-20">
+        <video
+            autoplay
+            playsinline
+            muted
+            ref="localVideo"
+            class="w-[400px] h-[250px] bg-gray-200"
+        ></video>
+        <video
+            autoplay
+            playsinline
+            ref="remoteVideo"
+            class="w-[400px] h-[250px] bg-gray-200"
+        ></video>
+    </div>
 </template>
-
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
-}
-</style>
