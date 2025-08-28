@@ -9,6 +9,7 @@ let pc: RTCPeerConnection | null = null;
 const localVideo = ref<HTMLVideoElement | null>(null);
 const remoteVideo = ref<HTMLVideoElement | null>(null);
 let localStream: MediaStream | null = null;
+const pendingCandidates: RTCIceCandidateInit[] = [];
 
 const startLocalStream = async () => {
     localStream = await navigator.mediaDevices.getUserMedia({
@@ -53,16 +54,56 @@ const callUser = async () => {
     console.log("calling");
 };
 
+const handleOffer = async (offer: RTCSessionDescriptionInit) => {
+    createPeerConnection();
+
+    if (localStream) {
+        localStream.getTracks().forEach((t) => pc?.addTrack(t, localStream!));
+    }
+
+    await pc?.setRemoteDescription(new RTCSessionDescription(offer));
+
+    const answer = await pc?.createAnswer();
+    await pc?.setLocalDescription(answer);
+
+    socket.emit("answer", { answer });
+
+    for (const c of pendingCandidates) {
+        await pc!.addIceCandidate(new RTCIceCandidate(c));
+    }
+    pendingCandidates.length = 0;
+};
+
+const handleAnswer = async (answer: RTCSessionDescriptionInit) => {
+    await pc?.setRemoteDescription(new RTCSessionDescription(answer));
+
+    for (const c of pendingCandidates) {
+        await pc?.addIceCandidate(new RTCIceCandidate(c));
+    }
+    pendingCandidates.length = 0;
+};
+
+const handleCandidate = async (candidate: RTCIceCandidateInit) => {
+    if (pc?.remoteDescription) {
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+    } else {
+        pendingCandidates.push(candidate);
+    }
+};
+
 onMounted(async () => {
     startLocalStream();
 
     socket.on("offer", ({ offer }) => {
+        handleOffer(offer);
         console.log("got offer");
     });
     socket.on("answer", ({ answer }) => {
+        handleAnswer(answer);
         console.log("got offer");
     });
     socket.on("candidate", ({ candidate }) => {
+        handleCandidate(candidate);
         console.log("got offer");
     });
 });
