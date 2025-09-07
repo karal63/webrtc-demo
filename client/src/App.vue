@@ -107,6 +107,8 @@ onMounted(async () => {
         console.log("got offer");
     });
 });
+
+// CD check
 </script>
 
 <template>
