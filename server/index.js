@@ -1,5 +1,10 @@
 const { Server } = require("socket.io");
-const io = new Server(3000, {
+const app = require("express")();
+const http = require("http");
+
+const server = http.createServer(app);
+
+const io = new Server(server, {
     cors: { origin: "*" },
 });
 
@@ -22,4 +27,8 @@ io.on("connection", (socket) => {
 
         socket.broadcast.emit("candidate", { candidate });
     });
+});
+
+server.listen("https://webrtc-demo-bamn.onrender.com", () => {
+    console.log(`Server running on port`);
 });

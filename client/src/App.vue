@@ -2,7 +2,7 @@
 import { io } from "socket.io-client";
 import { onMounted, ref } from "vue";
 
-const socket = io("http://localhost:3000");
+const socket = io("https://webrtc-demo-bamn.onrender.com");
 socket.connect();
 let pc: RTCPeerConnection | null = null;
 
