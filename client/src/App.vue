@@ -109,6 +109,7 @@ onMounted(async () => {
 });
 
 // CD check
+console.log("CD check");
 </script>
 
 <template>
